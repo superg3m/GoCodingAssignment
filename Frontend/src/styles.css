@@ -20,3 +20,7 @@ html, body { height: 100%; }
         background-color: #ff000820 !important;
     }
 }
+
+.danger-btn:active, .danger-btn:focus {
+    background-color: #ff000864 !important;
+}

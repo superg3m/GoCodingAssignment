@@ -1,10 +1,143 @@
-<h2 mat-dialog-title>Install Angular</h2>
+<style>
+  .dialog-title {
+    margin-top: 8px;
+    font-size: 1.5rem;
+    font-weight: 500;
+    color: #1a1a1a;
+    text-align: center;
+  }
+
+  .dialog-subtitle {
+    margin: 0.5rem 0 0;
+    font-size: 0.875rem;
+    color: #666;
+    text-align: center;
+  }
+
+  .form-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    width: 100%;
+  }
+
+  .form-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .section-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #555;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0.5rem 0 0;
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .text-input {
+    width: 100%;
+  }
+
+  .dialog-actions {
+    padding: 1rem 2rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    border-top: 1px solid #e0e0e0;
+    background-color: #fafafa;
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .cancel-btn {
+    color: #666;
+  }
+
+  .cancel-btn:hover {
+    background-color: #f5f5f5;
+  }
+</style>
+
+<div class="dialog-header">
+  <h2 class="dialog-title">Create New User</h2>
+</div>
+
 <mat-dialog-content>
-  <h3>Develop across all platforms</h3>
-  <p>Learn one way to build applications with Angular and reuse your code and abilities to build
-    apps for any deployment target. For web, mobile web, native mobile and native desktop.</p>
+  <form class="form-container">
+    <div class="form-section">
+      <h3 class="section-title">Personal Information</h3>
+      
+      <mat-form-field class="text-input" appearance="outline">
+        <mat-label>User Name</mat-label>
+        <input matInput placeholder="JohnDoe14">
+      </mat-form-field>
+
+      <div class="form-row">
+        <mat-form-field class="text-input" appearance="outline">
+          <mat-label>First Name</mat-label>
+          <input matInput placeholder="John Doe">
+        </mat-form-field>
+
+        <mat-form-field class="text-input" appearance="outline">
+          <mat-label>Last Name</mat-label>
+          <input matInput placeholder="Smith">
+        </mat-form-field>
+      </div>
+
+      <mat-form-field class="text-input" appearance="outline">
+        <mat-label>Email Address</mat-label>
+        <input matInput type="email" placeholder="e.g. john.smith@company.com">
+        <mat-icon matPrefix>email</mat-icon>
+      </mat-form-field>
+    </div>
+
+    <div class="form-section">
+      <h3 class="section-title">Account Details</h3>
+      
+      <div class="form-row">
+        <mat-form-field class="text-input" appearance="outline">
+          <mat-label>User Status</mat-label>
+          <mat-select>
+            <mat-option value="Active">Active</mat-option>
+            <mat-option value="Inactive">Inactive</mat-option>
+            <mat-option value="Terminated">Pending</mat-option>
+          </mat-select>
+          <mat-icon matPrefix>toggle_on</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field class="text-input" appearance="outline">
+          <mat-label>Department</mat-label>
+          <mat-select>
+            <mat-option value="engineering">Engineering</mat-option>
+            <mat-option value="design">Design</mat-option>
+            <mat-option value="hr">Human Resources</mat-option>
+            <mat-option value="sales">Sales</mat-option>
+            <mat-option value="marketing">Marketing</mat-option>
+          </mat-select>
+          <mat-icon matPrefix>business</mat-icon>
+        </mat-form-field>
+      </div>
+    </div>
+  </form>
 </mat-dialog-content>
-<mat-dialog-actions align="end">
-  <button mat-button mat-dialog-close class="danger-btn">Cancel</button>
-  <button mat-button [mat-dialog-close]="true">Create</button>
+
+<mat-dialog-actions class="dialog-actions">
+  <div class="action-buttons">
+    <button mat-button mat-dialog-close class="cancel-btn">Cancel</button>
+    <button mat-raised-button color="primary" [mat-dialog-close]="true">
+      Create User
+    </button>
+  </div>
 </mat-dialog-actions>
