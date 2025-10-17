@@ -5,3 +5,18 @@ html, body { height: 100%; }
     margin: 0; 
     font-family: Roboto, "Helvetica Neue", sans-serif; 
 }
+
+/* I'm not sure how to actually change the mat button style without !important*/
+.warn-btn {
+    color: #ffee00 !important;
+    &:hover {
+        background-color: #ffee0020 !important;
+    }
+}
+
+.danger-btn {
+    color: #ff0000 !important;
+    &:hover {
+        background-color: #ff000820 !important;
+    }
+}
