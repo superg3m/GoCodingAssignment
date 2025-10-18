@@ -68,6 +68,10 @@
   .cancel-btn:hover {
     background-color: #f5f5f5;
   }
+
+  .help-msg {
+    color: red;
+  }
 </style>
 
 <div class="dialog-header">
@@ -78,27 +82,28 @@
   <form class="form-container">
     <div class="form-section">
       <h3 class="section-title">Personal Information</h3>
+      <h4 class="help-msg" *ngIf="!isFormFilledOut()" >Please completely fill out the form to submit</h4>
       
       <mat-form-field class="text-input" appearance="outline">
         <mat-label>User Name</mat-label>
-        <input matInput placeholder="JohnDoe14">
+        <input matInput [(ngModel)]="user.username" name="username" placeholder="JohnDoe14">
       </mat-form-field>
 
       <div class="form-row">
         <mat-form-field class="text-input" appearance="outline">
           <mat-label>First Name</mat-label>
-          <input matInput placeholder="John Doe">
+          <input matInput [(ngModel)]="user.firstname" name="firstname" placeholder="John Doe">
         </mat-form-field>
 
         <mat-form-field class="text-input" appearance="outline">
           <mat-label>Last Name</mat-label>
-          <input matInput placeholder="Smith">
+          <input matInput [(ngModel)]="user.lastname" name="lastname" placeholder="Smith">
         </mat-form-field>
       </div>
 
       <mat-form-field class="text-input" appearance="outline">
         <mat-label>Email Address</mat-label>
-        <input matInput type="email" placeholder="e.g. john.smith@company.com">
+        <input matInput [(ngModel)]="user.email" name="email" type="email" placeholder="e.g. john.smith@company.com">
         <mat-icon matPrefix>email</mat-icon>
       </mat-form-field>
     </div>
@@ -109,22 +114,16 @@
       <div class="form-row">
         <mat-form-field class="text-input" appearance="outline">
           <mat-label>User Status</mat-label>
-          <mat-select>
-            <mat-option value="Active">Active</mat-option>
-            <mat-option value="Inactive">Inactive</mat-option>
-            <mat-option value="Terminated">Pending</mat-option>
+          <mat-select [(ngModel)]="user.userStatus" name="userStatus">
+            <mat-option *ngFor="let v of userStatusValues" [value]="v">{{v}}</mat-option>
           </mat-select>
           <mat-icon matPrefix>toggle_on</mat-icon>
         </mat-form-field>
 
         <mat-form-field class="text-input" appearance="outline">
           <mat-label>Department</mat-label>
-          <mat-select>
-            <mat-option value="engineering">Engineering</mat-option>
-            <mat-option value="design">Design</mat-option>
-            <mat-option value="hr">Human Resources</mat-option>
-            <mat-option value="sales">Sales</mat-option>
-            <mat-option value="marketing">Marketing</mat-option>
+          <mat-select [(ngModel)]="user.department" name="department">
+            <mat-option *ngFor="let v of departmentValues" [value]="v">{{v}}</mat-option>
           </mat-select>
           <mat-icon matPrefix>business</mat-icon>
         </mat-form-field>
@@ -135,8 +134,8 @@
 
 <mat-dialog-actions class="dialog-actions">
   <div class="action-buttons">
-    <button mat-button mat-dialog-close class="cancel-btn">Cancel</button>
-    <button mat-raised-button color="primary" [mat-dialog-close]="true">
+    <button mat-button mat-dialog-close (click)="cancel()" class="cancel-btn">Cancel</button>
+    <button mat-raised-button color="primary" [disabled]="!isFormFilledOut()" [mat-dialog-close]="true" (click)="createUser()">
       Create User
     </button>
   </div>
