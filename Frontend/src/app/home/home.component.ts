@@ -26,6 +26,7 @@ export enum Department {
 }
 
 export interface User {
+  id: number,
   username: string;
   firstname: string;
   lastname: string;
@@ -52,6 +53,7 @@ export class HomeComponent {
 
   users: User[] = [
     {
+      id: 1,
       username: 'JakeG32',
       firstname: 'Jake',
       lastname: 'Gore',
@@ -65,7 +67,7 @@ export class HomeComponent {
   ];
 
   openCreateDialog() {
-    const dialogRef = this.dialog.open(DialogUserComponent, {
+    const dialogRef = this.dialog.open(DialogSaveUserComponent, {
       autoFocus: false,
       data: { user: undefined }
     });
@@ -81,25 +83,41 @@ export class HomeComponent {
   }
 
   openEditDialog(userIndex: number) {
-    const dialogRef = this.dialog.open(DialogUserComponent, {
+    const dialogRef = this.dialog.open(DialogSaveUserComponent, {
       autoFocus: false,
       data: { user: this.users[userIndex] }
     });
 
     dialogRef.afterClosed().subscribe((result: User|undefined) => {
       if (result) {
-        // api request here
-        console.log(result);
-        this.users = [...this.users, result];
-        console.log(this.users);
+        console.log(result)
+        this.users[userIndex] = result
+        this.users = [...this.users]
+      }
+    });
+  }
+
+  openDeleteDialog(userIndex: number) {
+    const dialogRef = this.dialog.open(DialogDeleteUserComponent, {
+      autoFocus: false,
+      data: { user: this.users[userIndex] }
+    });
+
+    dialogRef.afterClosed().subscribe((result: boolean) => {
+      if (result) {
+        // Node(jovanni): This is bad for performance because you have to do a syscall to reallocate
+        // but im not too worried for this case.
+        this.users = this.users.filter((_, i) => {
+          return i != userIndex;
+        })
       }
     });
   }
 }
 
 @Component({
-  selector: 'dialog-user',
-  templateUrl: 'dialog-user.component.html',
+  selector: 'dialog-save-user',
+  templateUrl: 'dialog-save-user.component.html',
   imports: [
     MatDialogModule, 
     MatButtonModule, 
@@ -112,14 +130,15 @@ export class HomeComponent {
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class DialogUserComponent {
+export class DialogSaveUserComponent {
   user: User;
 
   constructor(
-    private dialogRef: MatDialogRef<DialogUserComponent>,
+    private dialogRef: MatDialogRef<DialogSaveUserComponent>,
     @Inject(MAT_DIALOG_DATA) public data: { user: User }
   ) {
     this.user = data.user ? { ...data.user } : {
+      id: -1,
       username: '',
       firstname: '',
       lastname: '',
@@ -132,11 +151,7 @@ export class DialogUserComponent {
   readonly userStatusValues = Object.values(UserStatus);
   readonly departmentValues = Object.values(Department);
 
-  createUser() {
-    this.dialogRef.close(this.user)
-  }
-
-  editUser() {
+  saveUser() {
     this.dialogRef.close(this.user)
   }
 
@@ -154,5 +169,38 @@ export class DialogUserComponent {
       this.user.userStatus != <UserStatus>(<unknown>-1) &&
       this.user.department != <Department>(<unknown>-1)
     );
+  }
+}
+
+@Component({
+  selector: 'dialog-delete-user',
+  templateUrl: 'dialog-delete-user.component.html',
+  imports: [
+    MatDialogModule, 
+    MatButtonModule, 
+    MatInputModule, 
+    MatFormFieldModule, 
+    FormsModule,
+    MatSelectModule,
+    MatIcon,
+    CommonModule
+  ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class DialogDeleteUserComponent {
+  constructor(
+    private dialogRef: MatDialogRef<DialogDeleteUserComponent>,
+    @Inject(MAT_DIALOG_DATA) public data: { user: User }
+  ) {}
+
+  readonly userStatusValues = Object.values(UserStatus);
+  readonly departmentValues = Object.values(Department);
+
+  deleteUser() {
+    this.dialogRef.close(true)
+  }
+
+  cancel() {
+    this.dialogRef.close(false)
   }
 }

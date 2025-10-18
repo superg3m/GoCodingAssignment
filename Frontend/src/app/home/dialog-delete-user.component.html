@@ -1,0 +1,91 @@
+<style>
+  .dialog-title {
+    margin-top: 8px;
+    font-size: 1.5rem;
+    font-weight: 500;
+    color: #1a1a1a;
+    text-align: center;
+  }
+
+  .dialog-subtitle {
+    margin: 0.5rem 0 0;
+    font-size: 0.875rem;
+    color: #666;
+    text-align: center;
+  }
+
+  .form-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    width: 100%;
+  }
+
+  .form-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .section-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #555;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0.5rem 0 0;
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .text-input {
+    width: 100%;
+  }
+
+  .dialog-actions {
+    padding: 1rem 2rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    border-top: 1px solid #e0e0e0;
+    background-color: #fafafa;
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .cancel-btn {
+    color: #666;
+  }
+
+  .cancel-btn:hover {
+    background-color: #f5f5f5;
+  }
+
+  .help-msg {
+    color: red;
+  }
+</style>
+
+<div class="dialog-header">
+  <h2 class="dialog-title">Delete User</h2>
+</div>
+
+<mat-dialog-actions class="dialog-actions">
+  <div class="action-buttons">
+    <button mat-button mat-dialog-close (click)="cancel()" class="cancel-btn">Cancel</button>
+    <button mat-raised-button class="danger-btn" [mat-dialog-close]="true" (click)="deleteUser()">
+      <div style="display: flex; justify-content: center; align-items: center; gap: 2px;">
+        <mat-icon>warning</mat-icon>
+        <h3>Delete</h3>
+      </div>
+    </button>
+  </div>
+</mat-dialog-actions>
