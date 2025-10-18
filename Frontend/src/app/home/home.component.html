@@ -12,6 +12,11 @@
 <div class="table-container">
     <!-- I could probably use ngFor here, it would be more robust to change but less readable... -->
     <table mat-table class="mat-elevation-z8" [dataSource]="users">
+        <ng-container matColumnDef="id">
+            <th mat-header-cell *matHeaderCellDef>ID</th>
+            <td mat-cell *matCellDef="let element"> {{element.id}} </td>
+        </ng-container>
+
         <ng-container matColumnDef="username">
             <th mat-header-cell *matHeaderCellDef>UserName</th>
             <td mat-cell *matCellDef="let element"> {{element.username}} </td>
@@ -52,7 +57,7 @@
         </ng-container>
 
         <ng-container matColumnDef="delete">
-            <th mat-header-cell *matHeaderCellDef> Delete </th>
+            <th mat-header-cell *matHeaderCellDef>Delete</th>
             <td mat-cell *matCellDef="let element; let i = index"> 
                 <button matMiniFab style="color: red;" (click)="openDeleteDialog(i) ">
                     <mat-icon>delete</mat-icon>

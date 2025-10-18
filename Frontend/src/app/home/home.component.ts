@@ -13,6 +13,8 @@ import { MatTableModule } from '@angular/material/table';
 import {MAT_DIALOG_DATA} from '@angular/material/dialog';
 import { Inject } from '@angular/core';
 
+import validator from 'validator';
+
 export enum UserStatus {
   ACTIVE = "active",
   INACTIVE = "inactive",
@@ -49,7 +51,7 @@ export interface User {
 export class HomeComponent {
   readonly dialog = inject(MatDialog);
 
-  displayedColumns: string[] = ['username', 'firstname', 'lastname', 'email', 'userStatus', 'department', 'edit', 'delete'];
+  displayedColumns: string[] = ['id', 'username', 'firstname', 'lastname', 'email', 'userStatus', 'department', 'edit', 'delete'];
 
   users: User[] = [
     {
@@ -160,15 +162,19 @@ export class DialogSaveUserComponent {
     this.dialogRef.close()
   }
 
-  isFormFilledOut() {
+  isEmailValid(): boolean {
+    return validator.isEmail(this.user.email);
+  }
+
+  isFormFilledOut(): boolean {
     return (
-      this.user.username&&
+      this.user.username &&
       this.user.firstname &&
       this.user.lastname &&
       this.user.email && 
-      this.user.userStatus != <UserStatus>(<unknown>-1) &&
+      this.user.userStatus != <UserStatus>(<unknown>-1) && 
       this.user.department != <Department>(<unknown>-1)
-    );
+    ) == true;
   }
 }
 
