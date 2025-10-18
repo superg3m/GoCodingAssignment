@@ -46,9 +46,9 @@ const (
 )
 
 type User struct {
-	ID    int64  `db:"user_id" json:"user_id"`
-	Name  string `db:"name" json:"name"`
-	Email string `db:"email" json:"email"`
+	ID    int64  `db:"ID" json:"user_id"`
+	Email string `db:"Email" json:"email"`
+	Name  string `db:"Name" json:"name"`
 }
 
 func main() {
@@ -65,11 +65,12 @@ func main() {
 	// GET /users/:id
 	e.GET("/users/:id", func(c echo.Context) error {
 		id := c.Param("id")
+		fmt.Println("ID:", id)
 
 		var user User
-		err := db.Get(&user, "SELECT id, name, email FROM users WHERE id=$1", id)
+		err := db.Get(&user, "SELECT ID, Email, Name FROM User WHERE ID = ?", id)
 		if err != nil {
-			return c.JSON(http.StatusNotFound, map[string]string{"error": "user not found"})
+			return c.JSON(http.StatusNotFound, err.Error())
 		}
 
 		return c.JSON(http.StatusOK, user)
