@@ -62,6 +62,8 @@ func main() {
 
 	e := echo.New()
 
+	// Make sure to check to make sure user_name is unique
+
 	// GET /users/:id
 	e.GET("/users/:id", func(c echo.Context) error {
 		id := c.Param("id")
