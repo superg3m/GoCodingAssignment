@@ -77,6 +77,57 @@ func main() {
 		return c.JSON(http.StatusOK, "User Created Successfully")
 	})
 
+	// Make sure to check to make sure user_name is unique
+	e.PATCH("/User/Update", func(c echo.Context) error {
+		var u User
+		err := c.Bind(&u)
+		if err != nil {
+			return c.JSON(http.StatusNotFound, err.Error())
+		}
+
+		_, err = db.Exec("SELECT * FROM User WHERE user_id = ?", u.ID)
+		if err != nil {
+			return c.JSON(http.StatusNotFound, err.Error())
+		}
+
+		// do a CanCreate() check here
+		sql := `UPDATE User 
+    		set user_name = ?, 
+    		set first_name = ?,
+    		set last_name = ?,
+    		set email = ?,
+    		set user_status = ?,
+    		set department = ?
+        WHERE user_id = ?
+		`
+
+		_, err = db.Exec(sql, u.Username, u.Firstname, u.Lastname, u.Email, u.UserStatus, u.Department, u.ID)
+		if err != nil {
+			return c.JSON(http.StatusNotFound, err.Error())
+		}
+
+		return c.JSON(http.StatusOK, "User Created Successfully")
+	})
+
+	// Make sure to check to make sure user_name is unique
+	e.DELETE("/User/Delete", func(c echo.Context) error {
+		var u User
+		err := c.Bind(&u)
+		if err != nil {
+			return c.JSON(http.StatusNotFound, err.Error())
+		}
+
+		// do a CanDelete() check here
+		sql := "DELETE FROM User WHERE user_id = ?"
+
+		_, err = db.Exec(sql, u.ID)
+		if err != nil {
+			return c.JSON(http.StatusNotFound, err.Error())
+		}
+
+		return c.JSON(http.StatusOK, "User Created Successfully")
+	})
+
 	// GET /users/:id
 	e.GET("/User/Get/:id", func(c echo.Context) error {
 		id := c.Param("id")
