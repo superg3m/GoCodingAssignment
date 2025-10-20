@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, Input, Output, EventEmitter } from '@angular/core';
+import {ChangeDetectionStrategy, Component, inject, Input, Output, EventEmitter, OnInit} from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
@@ -28,19 +28,19 @@ export enum Department {
 }
 
 export interface User {
-  id: number,
-  username: string;
-  firstname: string;
-  lastname: string;
+  user_id: number,
+  user_name: string;
+  first_name: string;
+  last_name: string;
   email: string;
-  userStatus: UserStatus;
+  user_status: UserStatus;
   department?: Department;
 }
 
 @Component({
   selector: 'app-home',
   imports: [
-    MatButtonModule, 
+    MatButtonModule,
     MatDialogModule,
     MatIcon,
     MatTableModule
@@ -48,33 +48,20 @@ export interface User {
   templateUrl: './home.component.html',
   styleUrl: './home.component.css'
 })
-export class HomeComponent {
+export class HomeComponent implements OnInit {
   readonly dialog = inject(MatDialog);
 
-  displayedColumns: string[] = ['id', 'username', 'firstname', 'lastname', 'email', 'userStatus', 'department', 'edit', 'delete'];
+  displayedColumns: string[] = ['id', 'user_name', 'first_name', 'last_name', 'email', 'user_status', 'department', 'edit', 'delete'];
 
-  users: User[] = [
-    {
-      id: 1,
-      username: 'JakeG32',
-      firstname: 'Jake',
-      lastname: 'Gore',
-      email: 'JakeG32@gmail.com',
-      userStatus: UserStatus.ACTIVE,
-      department: Department.ENGINEER
-    },
-    // {name: 'WillS-23', weight: 4.0026, symbol: 'He'},
-    // {name: 'JamesB', weight: 6.941, symbol: 'Li'},
-    // {name: 'BarryA90', weight: 9.0122, symbol: 'Be'},
-  ];
+  users: User[] = [];
 
   openCreateDialog() {
     const dialogRef = this.dialog.open(DialogSaveUserComponent, {
       autoFocus: false,
-      data: { user: undefined }
+      data: {user: undefined}
     });
 
-    dialogRef.afterClosed().subscribe((result: User|undefined) => {
+    dialogRef.afterClosed().subscribe((result: User | undefined) => {
       if (result) {
         console.log(result);
         this.users = [...this.users, result];
@@ -87,10 +74,10 @@ export class HomeComponent {
   openEditDialog(userIndex: number) {
     const dialogRef = this.dialog.open(DialogSaveUserComponent, {
       autoFocus: false,
-      data: { user: this.users[userIndex] }
+      data: {user: this.users[userIndex]}
     });
 
-    dialogRef.afterClosed().subscribe((result: User|undefined) => {
+    dialogRef.afterClosed().subscribe((result: User | undefined) => {
       if (result) {
         console.log(result)
         this.users[userIndex] = result
@@ -102,18 +89,52 @@ export class HomeComponent {
   openDeleteDialog(userIndex: number) {
     const dialogRef = this.dialog.open(DialogDeleteUserComponent, {
       autoFocus: false,
-      data: { user: this.users[userIndex] }
+      data: {user: this.users[userIndex]}
     });
 
-    dialogRef.afterClosed().subscribe((result: boolean) => {
+    dialogRef.afterClosed().subscribe(async (result: boolean) => {
       if (result) {
         // Node(jovanni): This is bad for performance because you have to do a syscall to reallocate
-        // but im not too worried for this case.
-        this.users = this.users.filter((_, i) => {
-          return i != userIndex;
-        })
+        // but im not too worried about this case.
+        try {
+          const requestBody = {
+            "user_id": this.users[userIndex].user_id
+          }
+
+          const response = await fetch("http://localhost:8080/User/Delete", {
+            method: "DELETE",
+            credentials: "include",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(requestBody)
+          });
+
+          this.users = this.users.filter((_, i) => {
+            return i != userIndex;
+          })
+        } catch (e) {
+          // This can be a toast
+          console.log("Failed to delete" + e)
+        }
       }
     });
+  }
+
+  async ngOnInit() {
+    try {
+      const response = await fetch("http://localhost:8080/User/Get/All", {
+        method: "GET",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        }
+      });
+
+      this.users = await response.json();
+    } catch (e) {
+      console.log("Can't reach the server")
+    }
   }
 }
 
@@ -121,10 +142,10 @@ export class HomeComponent {
   selector: 'dialog-save-user',
   templateUrl: 'dialog-save-user.component.html',
   imports: [
-    MatDialogModule, 
-    MatButtonModule, 
-    MatInputModule, 
-    MatFormFieldModule, 
+    MatDialogModule,
+    MatButtonModule,
+    MatInputModule,
+    MatFormFieldModule,
     FormsModule,
     MatSelectModule,
     MatIcon,
@@ -140,12 +161,12 @@ export class DialogSaveUserComponent {
     @Inject(MAT_DIALOG_DATA) public data: { user: User }
   ) {
     this.user = data.user ? { ...data.user } : {
-      id: -1,
-      username: '',
-      firstname: '',
-      lastname: '',
+      user_id: -1,
+      user_name: '',
+      first_name: '',
+      last_name: '',
       email: '',
-      userStatus: UserStatus.ACTIVE,
+      user_status: UserStatus.ACTIVE,
       department: Department.ENGINEER
     };
   }
@@ -168,11 +189,11 @@ export class DialogSaveUserComponent {
 
   isFormFilledOut(): boolean {
     return (
-      this.user.username &&
-      this.user.firstname &&
-      this.user.lastname &&
-      this.user.email && 
-      this.user.userStatus != <UserStatus>(<unknown>-1) && 
+      this.user.user_name &&
+      this.user.first_name &&
+      this.user.last_name &&
+      this.user.email &&
+      this.user.user_status != <UserStatus>(<unknown>-1) &&
       this.user.department != <Department>(<unknown>-1)
     ) == true;
   }
@@ -182,10 +203,10 @@ export class DialogSaveUserComponent {
   selector: 'dialog-delete-user',
   templateUrl: 'dialog-delete-user.component.html',
   imports: [
-    MatDialogModule, 
-    MatButtonModule, 
-    MatInputModule, 
-    MatFormFieldModule, 
+    MatDialogModule,
+    MatButtonModule,
+    MatInputModule,
+    MatFormFieldModule,
     FormsModule,
     MatSelectModule,
     MatIcon,

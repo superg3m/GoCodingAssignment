@@ -84,21 +84,21 @@
       <h3 class="section-title">Personal Information</h3>
       <h4 class="help-msg" *ngIf="!isFormFilledOut()" >Please completely fill out the form to submit</h4>
       <h4 class="help-msg" *ngIf="isFormFilledOut() && !isEmailValid()" >Email is not well formed</h4>
-      
+
       <mat-form-field class="text-input" appearance="outline">
         <mat-label>User Name</mat-label>
-        <input matInput [(ngModel)]="user.username" name="username" placeholder="JohnDoe14">
+        <input matInput [(ngModel)]="user.user_name" name="username" placeholder="JohnDoe14">
       </mat-form-field>
 
       <div class="form-row">
         <mat-form-field class="text-input" appearance="outline">
           <mat-label>First Name</mat-label>
-          <input matInput [(ngModel)]="user.firstname" name="firstname" placeholder="John Doe">
+          <input matInput [(ngModel)]="user.first_name" name="firstname" placeholder="John Doe">
         </mat-form-field>
 
         <mat-form-field class="text-input" appearance="outline">
           <mat-label>Last Name</mat-label>
-          <input matInput [(ngModel)]="user.lastname" name="lastname" placeholder="Smith">
+          <input matInput [(ngModel)]="user.last_name" name="lastname" placeholder="Smith">
         </mat-form-field>
       </div>
 
@@ -111,11 +111,11 @@
 
     <div class="form-section">
       <h3 class="section-title">Account Details</h3>
-      
+
       <div class="form-row">
         <mat-form-field class="text-input" appearance="outline">
           <mat-label>User Status</mat-label>
-          <mat-select [(ngModel)]="user.userStatus" name="userStatus">
+          <mat-select [(ngModel)]="user.user_status" name="user_status">
             <mat-option *ngFor="let v of userStatusValues" [value]="v">{{v}}</mat-option>
           </mat-select>
           <mat-icon matPrefix>toggle_on</mat-icon>
