@@ -55,15 +55,30 @@ export interface User {
   styleUrl: './home.component.css'
 })
 export class HomeComponent implements OnInit {
-  private _snackBar = inject(MatSnackBar);
-  horizontalPosition: MatSnackBarHorizontalPosition = 'end';
-  verticalPosition: MatSnackBarVerticalPosition = 'top';
-
+  private snackBar = inject(MatSnackBar);
   readonly dialog = inject(MatDialog);
 
   displayedColumns: string[] = ['id', 'user_name', 'first_name', 'last_name', 'email', 'user_status', 'department', 'edit', 'delete'];
 
   users: User[] = [];
+
+  showSuccess(message: string) {
+    this.snackBar.open(message, 'Close', {
+      duration: 5000,
+      horizontalPosition: "end",
+      verticalPosition: "top",
+      panelClass: ['snackbar-success']
+    });
+  }
+
+  showError(message: string) {
+    this.snackBar.open(message, 'Close', {
+      duration: 5000,
+      horizontalPosition: "end",
+      verticalPosition: "top",
+      panelClass: ['snackbar-error']
+    });
+  }
 
   openCreateDialog() {
     const dialogRef = this.dialog.open(DialogSaveUserComponent, {
@@ -93,11 +108,7 @@ export class HomeComponent implements OnInit {
           });
 
           if (!response.ok) {
-            this._snackBar.open("Failed to create user: " + await response.text(), 'Ok', {
-              horizontalPosition: this.horizontalPosition,
-              verticalPosition: this.verticalPosition,
-            });
-
+            this.showError("Failed to create user: " + await response.text())
             return
           }
 
@@ -106,13 +117,11 @@ export class HomeComponent implements OnInit {
           // Node(jovanni): This is bad for performance because you have to do a syscall to reallocate
           // but im not too worried about this case. I have to trigger change detection...
           this.users = [...this.users, responseBody];
+          this.showSuccess("Successfully created the user!");
         } catch (e) {
           // This can be a toast
           console.log(e)
-          this._snackBar.open("Failed to update" + e, 'Ok', {
-            horizontalPosition: this.horizontalPosition,
-            verticalPosition: this.verticalPosition,
-          });
+          this.showError("Failed to create user: " + e)
         }
       }
     });
@@ -147,25 +156,17 @@ export class HomeComponent implements OnInit {
           });
 
           if (!response.ok) {
-            this._snackBar.open("Failed to update user: " + await response.text(), 'Ok', {
-              horizontalPosition: this.horizontalPosition,
-              verticalPosition: this.verticalPosition,
-            });
-
-            return
+            this.showError("Failed to update user: " + await response.text());
+            return;
           }
 
           // Node(jovanni): This is bad for performance because you have to do a syscall to reallocate
           // but im not too worried about this case. I have to trigger change detection...
-          this.users[userIndex] = result
-          this.users = [...this.users]
+          this.users[userIndex] = result;
+          this.users = [...this.users];
+          this.showSuccess("Successfully updated the user!");
         } catch (e) {
-          // This can be a toast
-          console.log(e)
-          this._snackBar.open("Failed to update" + e, 'Ok', {
-            horizontalPosition: this.horizontalPosition,
-            verticalPosition: this.verticalPosition,
-          });
+          this.showError("Failed to update" + e);
         }
       }
     });
@@ -198,6 +199,7 @@ export class HomeComponent implements OnInit {
           this.users = this.users.filter((_, i) => {
             return i != userIndex;
           })
+          this.showSuccess("Successfully deleted the user!");
         } catch (e) {
           // This can be a toast
           console.log("Failed to delete" + e)

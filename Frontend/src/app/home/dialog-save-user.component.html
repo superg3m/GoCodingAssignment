@@ -7,11 +7,8 @@
     text-align: center;
   }
 
-  .dialog-subtitle {
-    margin: 0.5rem 0 0;
-    font-size: 0.875rem;
-    color: #666;
-    text-align: center;
+  .mat-mdc-dialog-content {
+    overflow: hidden;
   }
 
   .form-container {
@@ -19,6 +16,7 @@
     flex-direction: column;
     gap: 1.25rem;
     width: 100%;
+    overflow: hidden;
   }
 
   .form-section {
@@ -75,7 +73,7 @@
 </style>
 
 <div class="dialog-header">
-  <h2 class="dialog-title">Create New User</h2>
+  <h2 class="dialog-title">{{user.user_id > 0 ? "Edit User":  "Create New User"}}</h2>
 </div>
 
 <mat-dialog-content>

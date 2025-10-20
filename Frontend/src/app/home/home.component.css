@@ -30,6 +30,20 @@ h2 {
 }
 
 .column-header {
-  display: flex; 
+  display: flex;
   justify-content: center;
+}
+
+.edit-btn {
+  color: royalblue;
+  &:hover {
+    cursor: pointer;
+  }
+}
+
+.delete-btn {
+  color: red;
+  &:hover {
+    cursor: pointer;
+  }
 }

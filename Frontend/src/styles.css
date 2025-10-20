@@ -1,9 +1,14 @@
 /* You can add global styles to this file, and also import other style files */
 
-html, body { height: 100%; }
-* { 
-    margin: 0; 
-    font-family: Roboto, "Helvetica Neue", sans-serif; 
+html, body {
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+* {
+    margin: 0;
+    padding: 0;
+    font-family: Roboto, "Helvetica Neue", sans-serif;
 }
 
 /* I'm not sure how to actually change the mat button style without !important*/
@@ -23,4 +28,17 @@ html, body { height: 100%; }
 
 .danger-btn:active, .danger-btn:focus {
     background-color: #ff000864 !important;
+}
+
+
+.mat-mdc-snack-bar-container.snackbar-success {
+  --mat-snack-bar-button-color: white !important;
+  --mdc-snackbar-container-color: green !important;
+  --mdc-snackbar-supporting-text-color: white;
+}
+
+.mat-mdc-snack-bar-container.snackbar-error {
+  --mat-snack-bar-button-color: white  !important;
+  --mdc-snackbar-container-color: red !important;
+  --mdc-snackbar-supporting-text-color: white;
 }
