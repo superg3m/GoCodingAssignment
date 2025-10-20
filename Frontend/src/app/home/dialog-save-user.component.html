@@ -136,7 +136,7 @@
 <mat-dialog-actions class="dialog-actions">
   <div class="action-buttons">
     <button mat-button mat-dialog-close (click)="cancel()" class="cancel-btn">Cancel</button>
-    <button mat-raised-button color="primary" [disabled]="!isFormFilledOut()" [mat-dialog-close]="true" (click)="saveUser()">
+    <button mat-raised-button color="primary" [disabled]="!isFormFilledOut() || !isEmailValid()" [mat-dialog-close]="true" (click)="saveUser()">
       Confirm
     </button>
   </div>

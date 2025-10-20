@@ -13,6 +13,12 @@ import { MatTableModule } from '@angular/material/table';
 import {MAT_DIALOG_DATA} from '@angular/material/dialog';
 import { Inject } from '@angular/core';
 
+import {
+  MatSnackBar,
+  MatSnackBarHorizontalPosition,
+  MatSnackBarVerticalPosition,
+} from '@angular/material/snack-bar';
+
 import validator from 'validator';
 
 export enum UserStatus {
@@ -49,6 +55,10 @@ export interface User {
   styleUrl: './home.component.css'
 })
 export class HomeComponent implements OnInit {
+  private _snackBar = inject(MatSnackBar);
+  horizontalPosition: MatSnackBarHorizontalPosition = 'end';
+  verticalPosition: MatSnackBarVerticalPosition = 'top';
+
   readonly dialog = inject(MatDialog);
 
   displayedColumns: string[] = ['id', 'user_name', 'first_name', 'last_name', 'email', 'user_status', 'department', 'edit', 'delete'];
@@ -61,12 +71,49 @@ export class HomeComponent implements OnInit {
       data: {user: undefined}
     });
 
-    dialogRef.afterClosed().subscribe((result: User | undefined) => {
+    dialogRef.afterClosed().subscribe(async (result: User | undefined) => {
       if (result) {
-        console.log(result);
-        this.users = [...this.users, result];
-        // api request here
-        console.log(this.users);
+        try {
+          const requestBody = {
+            "user_name": result.user_name,
+            "first_name": result.first_name,
+            "last_name": result.last_name,
+            "email": result.email,
+            "user_status": result.user_status,
+            "department": result.department,
+          }
+
+          const response = await fetch("http://localhost:8080/User/Create", {
+            method: "POST",
+            credentials: "include",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(requestBody)
+          });
+
+          if (!response.ok) {
+            this._snackBar.open("Failed to create user: " + await response.text(), 'Ok', {
+              horizontalPosition: this.horizontalPosition,
+              verticalPosition: this.verticalPosition,
+            });
+
+            return
+          }
+
+          const responseBody: User = await response.json()
+
+          // Node(jovanni): This is bad for performance because you have to do a syscall to reallocate
+          // but im not too worried about this case. I have to trigger change detection...
+          this.users = [...this.users, responseBody];
+        } catch (e) {
+          // This can be a toast
+          console.log(e)
+          this._snackBar.open("Failed to update" + e, 'Ok', {
+            horizontalPosition: this.horizontalPosition,
+            verticalPosition: this.verticalPosition,
+          });
+        }
       }
     });
   }
@@ -77,11 +124,49 @@ export class HomeComponent implements OnInit {
       data: {user: this.users[userIndex]}
     });
 
-    dialogRef.afterClosed().subscribe((result: User | undefined) => {
+    dialogRef.afterClosed().subscribe(async (result: User | undefined) => {
       if (result) {
-        console.log(result)
-        this.users[userIndex] = result
-        this.users = [...this.users]
+        try {
+          const requestBody = {
+            "user_id": this.users[userIndex].user_id,
+            "user_name": result.user_name,
+            "first_name": result.first_name,
+            "last_name": result.last_name,
+            "email": result.email,
+            "user_status": result.user_status,
+            "department": result.department,
+          }
+
+          const response = await fetch("http://localhost:8080/User/Update", {
+            method: "PATCH",
+            credentials: "include",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(requestBody)
+          });
+
+          if (!response.ok) {
+            this._snackBar.open("Failed to update user: " + await response.text(), 'Ok', {
+              horizontalPosition: this.horizontalPosition,
+              verticalPosition: this.verticalPosition,
+            });
+
+            return
+          }
+
+          // Node(jovanni): This is bad for performance because you have to do a syscall to reallocate
+          // but im not too worried about this case. I have to trigger change detection...
+          this.users[userIndex] = result
+          this.users = [...this.users]
+        } catch (e) {
+          // This can be a toast
+          console.log(e)
+          this._snackBar.open("Failed to update" + e, 'Ok', {
+            horizontalPosition: this.horizontalPosition,
+            verticalPosition: this.verticalPosition,
+          });
+        }
       }
     });
   }
@@ -94,8 +179,6 @@ export class HomeComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(async (result: boolean) => {
       if (result) {
-        // Node(jovanni): This is bad for performance because you have to do a syscall to reallocate
-        // but im not too worried about this case.
         try {
           const requestBody = {
             "user_id": this.users[userIndex].user_id
@@ -110,6 +193,8 @@ export class HomeComponent implements OnInit {
             body: JSON.stringify(requestBody)
           });
 
+          // Node(jovanni): This is bad for performance because you have to do a syscall to reallocate
+          // but im not too worried about this case.
           this.users = this.users.filter((_, i) => {
             return i != userIndex;
           })

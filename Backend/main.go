@@ -46,7 +46,7 @@ func main() {
 
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins:     []string{"http://localhost:4200"},
-		AllowMethods:     []string{echo.GET, echo.POST, echo.PUT, echo.DELETE, echo.OPTIONS},
+		AllowMethods:     []string{echo.GET, echo.POST, echo.PATCH, echo.DELETE, echo.OPTIONS},
 		AllowHeaders:     []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
 		AllowCredentials: true,
 	}))
@@ -70,6 +70,10 @@ func main() {
 			return c.JSON(http.StatusNotFound, "Found duplicate Username")
 		}
 
+		if !Utility.ValidEmail(u.Email) {
+			return c.JSON(http.StatusNotFound, "Invalid Email")
+		}
+
 		sql := `INSERT INTO User (
         	user_name, 
         	first_name,
@@ -80,12 +84,13 @@ func main() {
         ) VALUES (?, ?, ?, ?, ?, ?)
 		`
 
-		_, err = db.Exec(sql, u.Username, u.Firstname, u.Lastname, u.Email, u.UserStatus, u.Department)
+		result, err := db.Exec(sql, u.Username, u.Firstname, u.Lastname, u.Email, u.UserStatus, u.Department)
 		if err != nil {
 			return c.JSON(http.StatusNotFound, err.Error())
 		}
 
-		return c.JSON(http.StatusOK, "User Created Successfully")
+		u.ID, _ = result.LastInsertId()
+		return c.JSON(http.StatusOK, u)
 	})
 
 	e.GET("/User/Get/All", func(c echo.Context) error {
@@ -105,13 +110,13 @@ func main() {
 	e.GET("/User/Get/:id", func(c echo.Context) error {
 		id := c.Param("id")
 
-		var user User
-		err := db.Get(&user, "SELECT * FROM User WHERE user_id = ?", id)
-		if user.ID != 0 && err != nil {
+		var u User
+		err := db.Get(&u, "SELECT * FROM User WHERE user_id = ?", id)
+		if u.ID != 0 && err != nil {
 			return c.JSON(http.StatusNotFound, err.Error())
 		}
 
-		return c.JSON(http.StatusOK, user)
+		return c.JSON(http.StatusOK, u)
 	})
 
 	// Make sure to check to make sure user_name is unique
@@ -131,12 +136,13 @@ func main() {
 			return c.JSON(http.StatusConflict, "User ID doesn't exist exists")
 		}
 
+		if !Utility.ValidEmail(u.Email) {
+			return c.JSON(http.StatusNotFound, "Invalid Email")
+		}
+
 		var dbUser User
 		err = db.Get(&dbUser, "SELECT * FROM User WHERE user_name = ?", u.Username)
-		if err != nil {
-			return c.JSON(http.StatusInternalServerError, err.Error())
-		}
-		if dbUser.ID != u.ID {
+		if err == nil && dbUser.ID != u.ID {
 			return c.JSON(http.StatusConflict, "Username already exists")
 		}
 
