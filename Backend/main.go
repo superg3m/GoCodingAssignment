@@ -49,7 +49,6 @@ func main() {
 		}
 	})
 
-	// Make sure to check to make sure user_name is unique
 	e.POST("/User/Create", func(c echo.Context) error {
 		var u User
 		err := c.Bind(&u)
@@ -57,7 +56,10 @@ func main() {
 			return c.JSON(http.StatusNotFound, err.Error())
 		}
 
-		// do a CanCreate() check here
+		_, err = db.Exec("SELECT * FROM User WHERE user_name = ?", u.Username)
+		if err != nil {
+			return c.JSON(http.StatusNotFound, "Found duplicate Username")
+		}
 
 		sql := `INSERT INTO User (
         	user_name, 
@@ -77,28 +79,66 @@ func main() {
 		return c.JSON(http.StatusOK, "User Created Successfully")
 	})
 
+	e.GET("/User/Get/All", func(c echo.Context) error {
+		var users []User
+		err := db.Select(&users, "SELECT * FROM User")
+		if err != nil {
+			return c.JSON(http.StatusNotFound, err.Error())
+		}
+
+		return c.JSON(http.StatusOK, users)
+	})
+
+	// NOTE(Jovanni):
+	// This error can't really happen in a small scoped thing like this
+	// However if there was like multiple people reading and writing to the
+	// database then you could probably have a situation.
+	e.GET("/User/Get/:id", func(c echo.Context) error {
+		id := c.Param("id")
+
+		var user User
+		err := db.Get(&user, "SELECT * FROM User WHERE user_id = ?", id)
+		if user.ID != 0 && err != nil {
+			return c.JSON(http.StatusNotFound, err.Error())
+		}
+
+		return c.JSON(http.StatusOK, user)
+	})
+
 	// Make sure to check to make sure user_name is unique
 	e.PATCH("/User/Update", func(c echo.Context) error {
 		var u User
 		err := c.Bind(&u)
-		if err != nil {
+		if u.ID != 0 && err != nil {
 			return c.JSON(http.StatusNotFound, err.Error())
 		}
 
-		_, err = db.Exec("SELECT * FROM User WHERE user_id = ?", u.ID)
+		exists := false
+		err = db.Get(&exists, "SELECT EXISTS(SELECT 1 FROM User WHERE user_id = ?)", u.ID)
 		if err != nil {
-			return c.JSON(http.StatusNotFound, err.Error())
+			return c.JSON(http.StatusInternalServerError, err.Error())
+		}
+		if !exists {
+			return c.JSON(http.StatusConflict, "User ID doesn't exist exists")
 		}
 
-		// do a CanCreate() check here
-		sql := `UPDATE User 
-    		set user_name = ?, 
-    		set first_name = ?,
-    		set last_name = ?,
-    		set email = ?,
-    		set user_status = ?,
-    		set department = ?
-        WHERE user_id = ?
+		var dbUser User
+		err = db.Get(&dbUser, "SELECT * FROM User WHERE user_name = ?", u.Username)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, err.Error())
+		}
+		if dbUser.ID != u.ID {
+			return c.JSON(http.StatusConflict, "Username already exists")
+		}
+
+		sql := `UPDATE User
+		SET user_name = ?, 
+		first_name = ?,
+		last_name = ?,
+		email = ?,
+		user_status = ?,
+		department = ?
+		WHERE user_id = ?
 		`
 
 		_, err = db.Exec(sql, u.Username, u.Firstname, u.Lastname, u.Email, u.UserStatus, u.Department, u.ID)
@@ -106,18 +146,17 @@ func main() {
 			return c.JSON(http.StatusNotFound, err.Error())
 		}
 
-		return c.JSON(http.StatusOK, "User Created Successfully")
+		return c.JSON(http.StatusOK, "User Updated Successfully")
 	})
 
 	// Make sure to check to make sure user_name is unique
 	e.DELETE("/User/Delete", func(c echo.Context) error {
 		var u User
 		err := c.Bind(&u)
-		if err != nil {
+		if u.ID != 0 && err != nil {
 			return c.JSON(http.StatusNotFound, err.Error())
 		}
 
-		// do a CanDelete() check here
 		sql := "DELETE FROM User WHERE user_id = ?"
 
 		_, err = db.Exec(sql, u.ID)
@@ -125,20 +164,7 @@ func main() {
 			return c.JSON(http.StatusNotFound, err.Error())
 		}
 
-		return c.JSON(http.StatusOK, "User Created Successfully")
-	})
-
-	// GET /users/:id
-	e.GET("/User/Get/:id", func(c echo.Context) error {
-		id := c.Param("id")
-
-		var user User
-		err := db.Get(&user, "SELECT * FROM User WHERE user_id = ?", id)
-		if err != nil {
-			return c.JSON(http.StatusNotFound, err.Error())
-		}
-
-		return c.JSON(http.StatusOK, user)
+		return c.JSON(http.StatusOK, "User Deleted Successfully")
 	})
 
 	err = e.Start(":8080")
