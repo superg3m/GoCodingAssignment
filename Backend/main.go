@@ -1,7 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/superg3m/server/Model"
 	"net/http"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -22,16 +24,6 @@ const (
 	PASSWORD  = "P@55word"
 	DBNAME    = "stoic"
 )
-
-type User struct {
-	ID         int64  `db:"user_id" json:"user_id"`
-	Username   string `db:"user_name" json:"user_name"`
-	Firstname  string `db:"first_name" json:"first_name"`
-	Lastname   string `db:"last_name" json:"last_name"`
-	Email      string `db:"email" json:"email"`
-	UserStatus string `db:"user_status" json:"user_status"`
-	Department string `db:"department" json:"department"`
-}
 
 func main() {
 	// Connect to DB
@@ -59,7 +51,7 @@ func main() {
 	})
 
 	e.POST("/User/Create", func(c echo.Context) error {
-		var u User
+		var u Model.User
 		err := c.Bind(&u)
 		if err != nil {
 			return c.JSON(http.StatusNotFound, err.Error())
@@ -94,7 +86,7 @@ func main() {
 	})
 
 	e.GET("/User/Get/All", func(c echo.Context) error {
-		var users []User
+		var users []Model.User
 		err := db.Select(&users, "SELECT * FROM User")
 		if err != nil {
 			return c.JSON(http.StatusNotFound, err.Error())
@@ -110,7 +102,7 @@ func main() {
 	e.GET("/User/Get/:id", func(c echo.Context) error {
 		id := c.Param("id")
 
-		var u User
+		var u Model.User
 		err := db.Get(&u, "SELECT * FROM User WHERE user_id = ?", id)
 		if u.ID != 0 && err != nil {
 			return c.JSON(http.StatusNotFound, err.Error())
@@ -121,7 +113,7 @@ func main() {
 
 	// Make sure to check to make sure user_name is unique
 	e.PATCH("/User/Update", func(c echo.Context) error {
-		var u User
+		var u Model.User
 		err := c.Bind(&u)
 		if u.ID != 0 && err != nil {
 			return c.JSON(http.StatusNotFound, err.Error())
@@ -140,7 +132,7 @@ func main() {
 			return c.JSON(http.StatusNotFound, "Invalid Email")
 		}
 
-		var dbUser User
+		var dbUser Model.User
 		err = db.Get(&dbUser, "SELECT * FROM User WHERE user_name = ?", u.Username)
 		if err == nil && dbUser.ID != u.ID {
 			return c.JSON(http.StatusConflict, "Username already exists")
@@ -166,17 +158,21 @@ func main() {
 
 	// Make sure to check to make sure user_name is unique
 	e.DELETE("/User/Delete", func(c echo.Context) error {
-		var u User
+		var u Model.User
 		err := c.Bind(&u)
-		if u.ID != 0 && err != nil {
-			return c.JSON(http.StatusNotFound, err.Error())
+		if u.ID <= 0 || err != nil {
+			return c.JSON(http.StatusInternalServerError, err.Error())
 		}
 
 		sql := "DELETE FROM User WHERE user_id = ?"
 
-		_, err = db.Exec(sql, u.ID)
+		result, err := db.Exec(sql, u.ID)
+		rows, _ := result.RowsAffected()
+		if rows == 0 {
+			return c.JSON(http.StatusNotFound, "User not found")
+		}
 		if err != nil {
-			return c.JSON(http.StatusNotFound, err.Error())
+			return c.JSON(http.StatusInternalServerError, err.Error())
 		}
 
 		return c.JSON(http.StatusOK, "User Deleted Successfully")
@@ -184,6 +180,6 @@ func main() {
 
 	err = e.Start(":8080")
 	if err != nil {
-		return
+		fmt.Println(err)
 	}
 }
