@@ -20,7 +20,7 @@ describe('HomeComponent', () => {
         last_name: 'Smith',
         email: 'bob@test.com',
         user_status: UserStatus.ACTIVE,
-        department: Department.ENGINEER
+        department: Department.NA
       }
     ];
 

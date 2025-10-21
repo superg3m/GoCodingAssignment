@@ -220,6 +220,13 @@ export class HomeComponent implements OnInit {
       });
 
       this.users = await response.json();
+      this.users = this.users.map((u) => {
+        if (u.department == null) {
+          u.department = Department.NA
+        }
+        
+        return u
+      })
     } catch (e) {
       console.log("Can't reach the server")
     }
@@ -255,7 +262,7 @@ export class DialogSaveUserComponent {
       last_name: '',
       email: '',
       user_status: UserStatus.ACTIVE,
-      department: Department.ENGINEER
+      department: Department.NA
     };
   }
 
