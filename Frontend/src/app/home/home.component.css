@@ -34,6 +34,12 @@ h2 {
   justify-content: center;
 }
 
+.create-btn {}
+.create-btn-content {
+  display: flex;
+  align-items: center;
+}
+
 .edit-btn {
   color: royalblue;
   &:hover {
