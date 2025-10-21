@@ -28,6 +28,7 @@ export enum UserStatus {
 }
 
 export enum Department {
+  NA = "N/A",
   ENGINEER = "engineer",
   SALES = "sales",
   HR = "hr",
@@ -40,7 +41,7 @@ export interface User {
   last_name: string;
   email: string;
   user_status: UserStatus;
-  department?: Department;
+  department: Department;
 }
 
 @Component({
@@ -95,7 +96,7 @@ export class HomeComponent implements OnInit {
             "last_name": result.last_name,
             "email": result.email,
             "user_status": result.user_status,
-            "department": result.department,
+            "department": result.department == Department.NA ? null : result.department,
           }
 
           const response = await fetch("http://localhost:8080/User/Create", {
@@ -143,7 +144,7 @@ export class HomeComponent implements OnInit {
             "last_name": result.last_name,
             "email": result.email,
             "user_status": result.user_status,
-            "department": result.department,
+            "department": result.department == Department.NA ? null : result.department,
           }
 
           const response = await fetch("http://localhost:8080/User/Update", {

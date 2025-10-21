@@ -38,8 +38,8 @@ const (
 // @host localhost:8080
 // @BasePath /
 func main() {
-	dsn := Utility.GetDSN(DB_ENGINE, HOST, PORT, USER, PASSWORD, DBNAME)
 	var err error
+	dsn := Utility.GetDSN(DB_ENGINE, HOST, PORT, USER, PASSWORD, DBNAME)
 	if db, err = sqlx.Connect(DB_ENGINE, dsn); err != nil {
 		panic(err)
 	}
@@ -67,7 +67,7 @@ func main() {
 	e.PATCH("/User/Update", UpdateUser)
 	e.DELETE("/User/Delete", DeleteUser)
 
-	if err := e.Start(":8080"); err != nil {
+	if err = e.Start(":8080"); err != nil {
 		fmt.Println(err)
 	}
 }
@@ -133,7 +133,7 @@ func GetUserByID(c echo.Context) error {
 	id := c.Param("id")
 	var u Model.User
 	if err := db.Get(&u, "SELECT * FROM User WHERE user_id = ?", id); err != nil {
-		return c.JSON(http.StatusNotFound, err.Error())
+		return c.JSON(http.StatusNotFound, "User not found: "+err.Error())
 	}
 	return c.JSON(http.StatusOK, u)
 }
