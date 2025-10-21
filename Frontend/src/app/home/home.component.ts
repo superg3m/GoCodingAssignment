@@ -195,7 +195,6 @@ export class HomeComponent implements OnInit {
         // but im not too worried about this case. I have to trigger change detection...
         this.users[userIndex] = result;
         this.users = [...this.users];
-        this.cdr.detectChanges()
         this.showSuccess("Successfully updated the user!");
       } catch (e) {
         this.showError("Failed to update" + e);
