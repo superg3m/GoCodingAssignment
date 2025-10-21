@@ -54,16 +54,16 @@ func main() {
 		var u Model.User
 		err := c.Bind(&u)
 		if err != nil {
-			return c.JSON(http.StatusNotFound, err.Error())
+			return c.JSON(http.StatusBadRequest, err.Error())
 		}
 
 		_, err = db.Exec("SELECT * FROM User WHERE user_name = ?", u.Username)
 		if err != nil {
-			return c.JSON(http.StatusNotFound, "Found duplicate Username")
+			return c.JSON(http.StatusConflict, "Found duplicate Username")
 		}
 
 		if !Utility.ValidEmail(u.Email) {
-			return c.JSON(http.StatusNotFound, "Invalid Email")
+			return c.JSON(http.StatusBadRequest, "Invalid Email")
 		}
 
 		sql := `INSERT INTO User (
@@ -76,9 +76,15 @@ func main() {
         ) VALUES (?, ?, ?, ?, ?, ?)
 		`
 
+		var dbUser Model.User
+		err = db.Get(&dbUser, "SELECT * FROM User WHERE user_name = ?", u.Username)
+		if err == nil {
+			return c.JSON(http.StatusConflict, "Username already exists")
+		}
+
 		result, err := db.Exec(sql, u.Username, u.Firstname, u.Lastname, u.Email, u.UserStatus, u.Department)
 		if err != nil {
-			return c.JSON(http.StatusNotFound, err.Error())
+			return c.JSON(http.StatusBadRequest, err.Error())
 		}
 
 		u.ID, _ = result.LastInsertId()
@@ -111,25 +117,24 @@ func main() {
 		return c.JSON(http.StatusOK, u)
 	})
 
-	// Make sure to check to make sure user_name is unique
 	e.PATCH("/User/Update", func(c echo.Context) error {
 		var u Model.User
 		err := c.Bind(&u)
 		if u.ID != 0 && err != nil {
-			return c.JSON(http.StatusNotFound, err.Error())
+			return c.JSON(http.StatusBadRequest, err.Error())
 		}
 
 		exists := false
 		err = db.Get(&exists, "SELECT EXISTS(SELECT 1 FROM User WHERE user_id = ?)", u.ID)
 		if err != nil {
-			return c.JSON(http.StatusInternalServerError, err.Error())
+			return c.JSON(http.StatusBadRequest, err.Error())
 		}
 		if !exists {
-			return c.JSON(http.StatusConflict, "User ID doesn't exist exists")
+			return c.JSON(http.StatusBadRequest, "User ID doesn't exist exists")
 		}
 
 		if !Utility.ValidEmail(u.Email) {
-			return c.JSON(http.StatusNotFound, "Invalid Email")
+			return c.JSON(http.StatusBadRequest, "Invalid Email")
 		}
 
 		var dbUser Model.User
@@ -160,8 +165,8 @@ func main() {
 	e.DELETE("/User/Delete", func(c echo.Context) error {
 		var u Model.User
 		err := c.Bind(&u)
-		if u.ID <= 0 || err != nil {
-			return c.JSON(http.StatusInternalServerError, err.Error())
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, err.Error())
 		}
 
 		sql := "DELETE FROM User WHERE user_id = ?"
@@ -169,7 +174,7 @@ func main() {
 		result, err := db.Exec(sql, u.ID)
 		rows, _ := result.RowsAffected()
 		if rows == 0 {
-			return c.JSON(http.StatusNotFound, "User not found")
+			return c.JSON(http.StatusBadRequest, "User not found")
 		}
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, err.Error())
