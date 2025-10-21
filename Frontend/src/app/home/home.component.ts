@@ -1,4 +1,9 @@
-import {ChangeDetectionStrategy, Component, inject, Input, Output, EventEmitter, OnInit} from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  OnInit,
+} from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
@@ -20,6 +25,7 @@ import {
 } from '@angular/material/snack-bar';
 
 import validator from 'validator';
+import { ActivatedRoute, Router } from '@angular/router';
 
 export enum UserStatus {
   ACTIVE = "active",
@@ -56,6 +62,11 @@ export interface User {
   styleUrl: './home.component.css'
 })
 export class HomeComponent implements OnInit {
+  constructor(
+    private route: ActivatedRoute,
+    protected router: Router) {
+  }
+
   private snackBar = inject(MatSnackBar);
   readonly dialog = inject(MatDialog);
 
@@ -88,123 +99,161 @@ export class HomeComponent implements OnInit {
     });
 
     dialogRef.afterClosed().subscribe(async (result: User | undefined) => {
-      if (result) {
-        try {
-          const requestBody = {
-            "user_name": result.user_name,
-            "first_name": result.first_name,
-            "last_name": result.last_name,
-            "email": result.email,
-            "user_status": result.user_status,
-            "department": result.department == Department.NA ? null : result.department,
-          }
-
-          const response = await fetch("http://localhost:8080/User/Create", {
-            method: "POST",
-            credentials: "include",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(requestBody)
-          });
-
-          if (!response.ok) {
-            this.showError("Failed to create user: " + await response.text())
-            return
-          }
-
-          const responseBody: User = await response.json()
-
-          // Node(jovanni): This is bad for performance because you have to do a syscall to reallocate
-          // but im not too worried about this case. I have to trigger change detection...
-          this.users = [...this.users, responseBody];
-          this.showSuccess("Successfully created the user!");
-        } catch (e) {
-          // This can be a toast
-          console.log(e)
-          this.showError("Failed to create user: " + e)
+      try {
+        if (!result) {
+          return
         }
+
+        const requestBody = {
+          "user_name": result.user_name,
+          "first_name": result.first_name,
+          "last_name": result.last_name,
+          "email": result.email,
+          "user_status": result.user_status,
+          "department": result.department == Department.NA ? null : result.department,
+        }
+
+        const response = await fetch("http://localhost:8080/User/Create", {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(requestBody)
+        });
+
+        if (!response.ok) {
+          this.showError("Failed to create user: " + await response.text())
+          return
+        }
+
+        const responseBody: User = await response.json()
+
+        // Node(jovanni): This is bad for performance because you have to do a syscall to reallocate
+        // but im not too worried about this case. I have to trigger change detection...
+        this.users = [...this.users, responseBody];
+        this.showSuccess("Successfully created the user!");
+      } catch (e) {
+        // This can be a toast
+        console.log(e)
+        this.showError("Failed to create user: " + e)
+      } finally {
+        await this.router.navigate([""])
       }
     });
   }
 
-  openEditDialog(userIndex: number) {
+  openEditDialog(userID: number) {
+    let userIndex = -1
+    for (let i = 0; i < this.users.length; i++) {
+      if (userID == this.users[i].user_id) {
+        userIndex = i
+        break
+      }
+    }
+
+    if (userIndex == -1) {
+      this.showError("Invalid user_id provided")
+      return
+    }
+
     const dialogRef = this.dialog.open(DialogSaveUserComponent, {
       autoFocus: false,
       data: {user: this.users[userIndex]}
     });
 
     dialogRef.afterClosed().subscribe(async (result: User | undefined) => {
-      if (result) {
-        try {
-          const requestBody = {
-            "user_id": this.users[userIndex].user_id,
-            "user_name": result.user_name,
-            "first_name": result.first_name,
-            "last_name": result.last_name,
-            "email": result.email,
-            "user_status": result.user_status,
-            "department": result.department == Department.NA ? null : result.department,
-          }
-
-          const response = await fetch("http://localhost:8080/User/Update", {
-            method: "PATCH",
-            credentials: "include",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(requestBody)
-          });
-
-          if (!response.ok) {
-            this.showError("Failed to update user: " + await response.text());
-            return;
-          }
-
-          // Node(jovanni): This is bad for performance because you have to do a syscall to reallocate
-          // but im not too worried about this case. I have to trigger change detection...
-          this.users[userIndex] = result;
-          this.users = [...this.users];
-          this.showSuccess("Successfully updated the user!");
-        } catch (e) {
-          this.showError("Failed to update" + e);
+      try {
+        if (!result) {
+          return
         }
+        const requestBody = {
+          "user_id": this.users[userIndex].user_id,
+          "user_name": result.user_name,
+          "first_name": result.first_name,
+          "last_name": result.last_name,
+          "email": result.email,
+          "user_status": result.user_status,
+          "department": result.department == Department.NA ? null : result.department,
+        }
+
+        const response = await fetch("http://localhost:8080/User/Update", {
+          method: "PATCH",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(requestBody)
+        });
+
+        if (!response.ok) {
+          this.showError("Failed to update user: " + await response.text());
+          return;
+        }
+
+        // Node(jovanni): This is bad for performance because you have to do a syscall to reallocate
+        // but im not too worried about this case. I have to trigger change detection...
+        this.users[userIndex] = result;
+        this.users = [...this.users];
+        this.cdr.detectChanges()
+        this.showSuccess("Successfully updated the user!");
+      } catch (e) {
+        this.showError("Failed to update" + e);
+      } finally {
+        await this.router.navigate([""]);
       }
     });
   }
 
-  openDeleteDialog(userIndex: number) {
+  openDeleteDialog(userID: number) {
+    let userIndex = -1
+    for (let i = 0; i < this.users.length; i++) {
+      if (userID == this.users[i].user_id) {
+        userIndex = i
+        break
+      }
+    }
+
+    if (userIndex == -1) {
+      this.showError("Invalid user_id provided")
+      return
+    }
+
     const dialogRef = this.dialog.open(DialogDeleteUserComponent, {
       autoFocus: false,
       data: {user: this.users[userIndex]}
     });
 
     dialogRef.afterClosed().subscribe(async (result: boolean) => {
-      if (result) {
-        try {
-          const requestBody = {
-            "user_id": this.users[userIndex].user_id
-          }
-
-          const response = await fetch("http://localhost:8080/User/Delete", {
-            method: "DELETE",
-            credentials: "include",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(requestBody)
-          });
-
-          // Node(jovanni): This is bad for performance because you have to do a syscall to reallocate
-          // but im not too worried about this case.
-          this.users = this.users.filter((_, i) => {
-            return i != userIndex;
-          })
-          this.showSuccess("Successfully deleted the user!");
-        } catch (e) {
-          // This can be a toast
-          console.log("Failed to delete" + e)
+      try {
+        if (!result) {
+          return
         }
+
+        const requestBody = {
+          "user_id": this.users[userIndex].user_id
+        }
+
+        const response = await fetch("http://localhost:8080/User/Delete", {
+          method: "DELETE",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(requestBody)
+        });
+
+        // Node(jovanni): This is bad for performance because you have to do a syscall to reallocate
+        // but im not too worried about this case.
+        this.users = this.users.filter((_, i) => {
+          return i != userIndex;
+        })
+        this.showSuccess("Successfully deleted the user!");
+      } catch (e) {
+        // This can be a toast
+        console.log("Failed to delete" + e)
+      } finally {
+        await this.router.navigate([""])
       }
     });
   }
@@ -224,13 +273,30 @@ export class HomeComponent implements OnInit {
         if (u.department == null) {
           u.department = Department.NA
         }
-        
+
         return u
       })
+
+      this.route.url.subscribe(segments => {
+        const action = segments[0]?.path; // "create" or "edit" or "delete"
+        if (action == 'create') {
+          this.openCreateDialog()
+          return
+        }
+
+        const userId = parseInt(segments[1]?.path); // "4"
+        if (action == 'edit') {
+          this.openEditDialog(userId);
+        } else if (action == 'delete') {
+          this.openDeleteDialog(userId);
+        }
+      });
     } catch (e) {
       console.log("Can't reach the server")
     }
   }
+
+
 }
 
 @Component({
@@ -274,7 +340,6 @@ export class DialogSaveUserComponent {
   }
 
   cancel() {
-    console.log(this.user)
     this.dialogRef.close()
   }
 

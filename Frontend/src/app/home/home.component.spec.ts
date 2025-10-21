@@ -1,16 +1,33 @@
+import { Location } from '@angular/common';
 import {ComponentFixture, TestBed} from '@angular/core/testing';
-
 import {Department, HomeComponent, UserStatus} from './home.component';
 import {By} from '@angular/platform-browser';
+import { RouterTestingModule } from '@angular/router/testing';
+import {provideRouter, Router} from '@angular/router';
+import {provideLocationMocks} from '@angular/common/testing';
 
 describe('HomeComponent', () => {
-  let component: HomeComponent;
   let fixture: ComponentFixture<HomeComponent>;
+  let component: HomeComponent;
+  let router: Router;
+  let location: Location;
+
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [HomeComponent]
+      imports: [ HomeComponent /* and possibly other modules */ ],
+      providers: [
+        provideRouter([
+          { path: '', component: HomeComponent },
+          { path: 'create', component: HomeComponent },
+          { path: 'edit/:id', component: HomeComponent },
+          { path: 'delete/:id', component: HomeComponent },
+        ]),
+        provideLocationMocks()
+      ]
     }).compileComponents();
 
+    router = TestBed.inject(Router);
+    location = TestBed.inject(Location);
     fixture = TestBed.createComponent(HomeComponent);
     fixture.componentInstance.users = [
       {
@@ -23,36 +40,39 @@ describe('HomeComponent', () => {
         department: Department.NA
       }
     ];
-
     fixture.detectChanges();
     component = fixture.componentInstance;
+    router.initialNavigation();
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should open create dialog', () => {
-    spyOn(component, "openCreateDialog")
-    const editButton = fixture.debugElement.query(By.css('.create-btn'));
-    editButton.triggerEventHandler('click', null);
+  it('should open create dialog', async () => {
+    fixture.detectChanges();
+    const createButton = fixture.debugElement.query(By.css('.create-btn'));
+    createButton.nativeElement.click();
+    await fixture.whenStable();
 
-    expect(component.openCreateDialog).toHaveBeenCalled();
+    expect(location.path()).toBe('/create');
   })
 
-  it('should open edit dialog', () => {
-    spyOn(component, "openEditDialog")
+  it('should open edit dialog', async () => {
+    fixture.detectChanges();
     const editButton = fixture.debugElement.query(By.css('.edit-btn'));
-    editButton.triggerEventHandler('click', null);
+    editButton.nativeElement.click();
+    await fixture.whenStable();
 
-    expect(component.openEditDialog).toHaveBeenCalled();
+    expect(location.path()).toBe('/edit/1');
   })
 
-  it('should open delete dialog', () => {
-    spyOn(component, "openDeleteDialog")
+  it('should open delete dialog', async () => {
+    fixture.detectChanges();
     const deleteButton = fixture.debugElement.query(By.css('.delete-btn'));
-    deleteButton.triggerEventHandler('click', null);
+    deleteButton.nativeElement.click();
+    await fixture.whenStable();
 
-    expect(component.openDeleteDialog).toHaveBeenCalled();
+    expect(location.path()).toBe('/delete/1');
   })
 });
