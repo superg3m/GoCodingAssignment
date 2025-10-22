@@ -7,7 +7,6 @@ import { StubComponent } from './stub/stub.component';
 export const routes: Routes = [
   { path: '', component: HomeComponent },
   { path: 'stub', component: StubComponent },
-  { path: 'create', component: HomeComponent },
-  { path: 'edit/:id', component: HomeComponent },
-  { path: 'delete/:id', component: HomeComponent },
 ];
+
+RouterModule.forRoot(routes, { onSameUrlNavigation: 'ignore' } )

@@ -138,6 +138,13 @@ export class HomeComponent implements OnInit {
         console.log(e)
         this.showError("Failed to create user: " + e)
       } finally {
+        this.users = this.users.map((u) => {
+          if (u.department == null) {
+            u.department = Department.NA
+          }
+
+          return u
+        })
         await this.router.navigate([""])
       }
     });
@@ -276,26 +283,19 @@ export class HomeComponent implements OnInit {
         return u
       })
 
-      this.route.url.subscribe(segments => {
-        const action = segments[0]?.path; // "create" or "edit" or "delete"
-        if (action == 'create') {
+      this.route.queryParams.subscribe(params => {
+        if ('create' in params) {
           this.openCreateDialog()
-          return
-        }
-
-        const userId = parseInt(segments[1]?.path); // "4"
-        if (action == 'edit') {
-          this.openEditDialog(userId);
-        } else if (action == 'delete') {
-          this.openDeleteDialog(userId);
+        } else if ('edit' in params) {
+          this.openEditDialog(params['edit']);
+        } else if ('delete' in params) {
+          this.openDeleteDialog(params['delete']);
         }
       });
     } catch (e) {
       console.log("Can't reach the server")
     }
   }
-
-
 }
 
 @Component({
