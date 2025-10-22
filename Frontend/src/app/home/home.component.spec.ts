@@ -2,7 +2,6 @@ import { Location } from '@angular/common';
 import {ComponentFixture, TestBed} from '@angular/core/testing';
 import {Department, HomeComponent, UserStatus} from './home.component';
 import {By} from '@angular/platform-browser';
-import { RouterTestingModule } from '@angular/router/testing';
 import {provideRouter, Router} from '@angular/router';
 import {provideLocationMocks} from '@angular/common/testing';
 
@@ -49,30 +48,30 @@ describe('HomeComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should open create dialog', async () => {
+  it('should open create dialog with query params', async () => {
     fixture.detectChanges();
     const createButton = fixture.debugElement.query(By.css('.create-btn'));
     createButton.nativeElement.click();
     await fixture.whenStable();
 
-    expect(location.path()).toBe('/create');
-  })
+    expect(location.path()).toBe('/?create=true');
+  });
 
-  it('should open edit dialog', async () => {
+  it('should open edit dialog with query params', async () => {
     fixture.detectChanges();
     const editButton = fixture.debugElement.query(By.css('.edit-btn'));
     editButton.nativeElement.click();
     await fixture.whenStable();
 
-    expect(location.path()).toBe('/edit/1');
-  })
+    expect(location.path()).toBe('/?edit=1');
+  });
 
-  it('should open delete dialog', async () => {
+  it('should open delete dialog with query params', async () => {
     fixture.detectChanges();
     const deleteButton = fixture.debugElement.query(By.css('.delete-btn'));
     deleteButton.nativeElement.click();
     await fixture.whenStable();
 
-    expect(location.path()).toBe('/delete/1');
-  })
+    expect(location.path()).toBe('/?delete=1');
+  });
 });
